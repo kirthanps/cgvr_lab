@@ -1,0 +1,19 @@
+{
+  "width": 256,
+  "height": 256,
+  "projection": "orthographic; pixel centers (x+0.5,y+0.5)",
+  "near_rule": "smaller z wins; equal depths retain first submitted sample",
+  "order_invariant_for_demo": true,
+  "covered_pixels": 28374,
+  "probe": {
+    "x": 128,
+    "y": 130,
+    "depth": 0.48,
+    "triangle_index": 2,
+    "rgb": [
+      0.85,
+      0.69,
+      0.2
+    ]
+  }
+}

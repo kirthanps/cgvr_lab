@@ -1,0 +1,24 @@
+test_every_small_integer_segment (test_lab01.Lines.test_every_small_integer_segment) ... ok
+test_styles (test_lab01.Lines.test_styles) ... ok
+test_antialias_coverage (test_lab02.Circles.test_antialias_coverage) ... ok
+test_degenerate_and_ellipse (test_lab02.Circles.test_degenerate_and_ellipse) ... ok
+test_symmetry_and_radius (test_lab02.Circles.test_symmetry_and_radius) ... ok
+test_known_coordinates (test_lab03.Transforms.test_known_coordinates) ... ok
+test_pivot_and_inverse (test_lab03.Transforms.test_pivot_and_inverse) ... ok
+test_reject_nonfinite (test_lab03.Transforms.test_reject_nonfinite) ... ok
+test_order_matters (test_lab04.Composite.test_order_matters) ... ok
+test_sequential_equivalence (test_lab04.Composite.test_sequential_equivalence) ... ok
+test_independent_oracle (test_lab05.Clipping.test_independent_oracle) ... ok
+test_special_cases (test_lab05.Clipping.test_special_cases) ... ok
+test_equal_depth_keeps_first (test_lab06.Depth.test_equal_depth_keeps_first) ... ok
+test_nearest_and_interpolation (test_lab06.Depth.test_nearest_and_interpolation) ... ok
+test_order_winding_and_degenerate (test_lab06.Depth.test_order_winding_and_degenerate) ... ok
+test_finite_sphere_and_validation (test_lab07.Phong.test_finite_sphere_and_validation) ... ok
+test_front_and_back_light (test_lab07.Phong.test_front_and_back_light) ... ok
+test_shininess_and_normalization (test_lab07.Phong.test_shininess_and_normalization) ... ok
+
+----------------------------------------------------------------------
+Ran 18 tests in 0.237s
+
+OK
+Validated 19 images/animations, 145 decoded frames, numerical outputs, and local Markdown file links.

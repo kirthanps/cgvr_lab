@@ -1,0 +1,50 @@
+{
+  "sample": [
+    [
+      0,
+      0
+    ],
+    [
+      1,
+      1
+    ],
+    [
+      2,
+      1
+    ],
+    [
+      3,
+      2
+    ],
+    [
+      4,
+      2
+    ],
+    [
+      5,
+      3
+    ],
+    [
+      6,
+      3
+    ]
+  ],
+  "benchmark": [
+    {
+      "algorithm": "dda",
+      "lines": 1000,
+      "pixels": 471597,
+      "best_seconds": 0.12788071499926446,
+      "mean_seconds": 0.13135775279970402,
+      "repeats": 5
+    },
+    {
+      "algorithm": "bresenham",
+      "lines": 1000,
+      "pixels": 471597,
+      "best_seconds": 0.0687539390000893,
+      "mean_seconds": 0.07473252480012889,
+      "repeats": 5
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+Lab 1 outputs: /workspace/scratch/84bb41e2d488/cg-vr-labs/lab_01/outputs
+Lab 2 outputs: /workspace/scratch/84bb41e2d488/cg-vr-labs/lab_02/outputs
+Lab 3 outputs: /workspace/scratch/84bb41e2d488/cg-vr-labs/lab_03/outputs
+Lab 4 outputs: /workspace/scratch/84bb41e2d488/cg-vr-labs/lab_04/outputs
+Lab 5 outputs: /workspace/scratch/84bb41e2d488/cg-vr-labs/lab_05/outputs
+Lab 6 outputs: /workspace/scratch/84bb41e2d488/cg-vr-labs/lab_06/outputs
+Lab 7 outputs: /workspace/scratch/84bb41e2d488/cg-vr-labs/lab_07/outputs

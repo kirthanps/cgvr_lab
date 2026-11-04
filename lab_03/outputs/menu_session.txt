@@ -1,0 +1,70 @@
+
+1 translate | 2 rotate about pivot | 3 scale | 4 reflect | 5 shear | 6 reset | 0 quit
+Choice: tx ty: Matrix:
+ [[ 1.  0.  3.]
+ [ 0.  1. -2.]
+ [ 0.  0.  1.]] 
+Vertices:
+ [[ 1. -3.]
+ [ 5. -3.]
+ [ 5. -1.]
+ [ 3.  1.]
+ [ 1. -1.]] 
+Saved /workspace/scratch/84bb41e2d488/cg-vr-labs/lab_03/outputs/interactive.png
+
+1 translate | 2 rotate about pivot | 3 scale | 4 reflect | 5 shear | 6 reset | 0 quit
+Choice: degrees pivot_x pivot_y: Matrix:
+ [[ 6.123234e-17 -1.000000e+00  3.000000e+00]
+ [ 1.000000e+00  6.123234e-17 -1.000000e+00]
+ [ 0.000000e+00  0.000000e+00  1.000000e+00]] 
+Vertices:
+ [[ 6.00000000e+00 -2.22044605e-16]
+ [ 6.00000000e+00  4.00000000e+00]
+ [ 4.00000000e+00  4.00000000e+00]
+ [ 2.00000000e+00  2.00000000e+00]
+ [ 4.00000000e+00 -1.11022302e-16]] 
+Saved /workspace/scratch/84bb41e2d488/cg-vr-labs/lab_03/outputs/interactive.png
+
+1 translate | 2 rotate about pivot | 3 scale | 4 reflect | 5 shear | 6 reset | 0 quit
+Choice: sx sy: Matrix:
+ [[1.5 0.  0. ]
+ [0.  0.5 0. ]
+ [0.  0.  1. ]] 
+Vertices:
+ [[ 9.00000000e+00 -1.11022302e-16]
+ [ 9.00000000e+00  2.00000000e+00]
+ [ 6.00000000e+00  2.00000000e+00]
+ [ 3.00000000e+00  1.00000000e+00]
+ [ 6.00000000e+00 -5.55111512e-17]] 
+Saved /workspace/scratch/84bb41e2d488/cg-vr-labs/lab_03/outputs/interactive.png
+
+1 translate | 2 rotate about pivot | 3 scale | 4 reflect | 5 shear | 6 reset | 0 quit
+Choice: x / y / origin / y=x: Matrix:
+ [[0. 1. 0.]
+ [1. 0. 0.]
+ [0. 0. 1.]] 
+Vertices:
+ [[-1.11022302e-16  9.00000000e+00]
+ [ 2.00000000e+00  9.00000000e+00]
+ [ 2.00000000e+00  6.00000000e+00]
+ [ 1.00000000e+00  3.00000000e+00]
+ [-5.55111512e-17  6.00000000e+00]] 
+Saved /workspace/scratch/84bb41e2d488/cg-vr-labs/lab_03/outputs/interactive.png
+
+1 translate | 2 rotate about pivot | 3 scale | 4 reflect | 5 shear | 6 reset | 0 quit
+Choice: shx shy: Matrix:
+ [[1.  0.4 0. ]
+ [0.  1.  0. ]
+ [0.  0.  1. ]] 
+Vertices:
+ [[3.6 9. ]
+ [5.6 9. ]
+ [4.4 6. ]
+ [2.2 3. ]
+ [2.4 6. ]] 
+Saved /workspace/scratch/84bb41e2d488/cg-vr-labs/lab_03/outputs/interactive.png
+
+1 translate | 2 rotate about pivot | 3 scale | 4 reflect | 5 shear | 6 reset | 0 quit
+Choice: 
+1 translate | 2 rotate about pivot | 3 scale | 4 reflect | 5 shear | 6 reset | 0 quit
+Choice: 
