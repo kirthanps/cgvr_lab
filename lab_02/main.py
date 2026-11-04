@@ -3,10 +3,8 @@ import argparse
 import csv
 import math
 from time import perf_counter
-import matplotlib.pyplot as plt
 import numpy as np
-from PIL import Image, ImageDraw
-from common.display import output_dir,pixels,save
+from common.gl_runtime import Context, output_dir, arguments, save_gif
 from lab_01.main import round_pixel,styled
 
 
@@ -60,20 +58,30 @@ def antialiased_circle(r,size=100,scale=4):
     return mask.reshape(size,scale,size,scale).mean(axis=(1,3))
 
 
+def gl_antialias(out,r=35):
+    """Supersample points rendered by OpenGL, then area-average framebuffer samples."""
+    from PIL import Image
+    with Context(400,400) as ctx:
+        g=ctx.gl;g.glViewport(0,0,400,400);g.glMatrixMode(g.GL_PROJECTION);g.glLoadIdentity();g.glOrtho(0,400,0,400,-1,1);g.glMatrixMode(g.GL_MODELVIEW);g.glLoadIdentity()
+        ctx.points(styled(midpoint_circle(200,200,r*4),width=4),color=(0,0,0),size=1)
+        high=ctx.image();low=high.resize((100,100),Image.Resampling.BOX);low.save(out/'antialiased_circle.png')
+    return low
+
+
 def demo(cx=15,cy=-10,r=35,show=False):
     out=output_dir(__file__)
-    fig,ax=plt.subplots(2,3,figsize=(13,8))
-    pixels(ax[0,0],midpoint_circle(cx,cy,r),f'Midpoint | center ({cx}, {cy}), r={r}')
-    pixels(ax[0,1],[p for rad in (15,25,35) for p in midpoint_circle(0,0,rad)],'Concentric circles')
-    pixels(ax[0,2],midpoint_ellipse(0,0,45,25),'Two-region midpoint ellipse')
-    for x,y,col in [(-44,15,'#0085c7'),(0,15,'#333333'),(44,15,'#df0024'),(-22,-10,'#d8a500'),(22,-10,'#009f3d')]:
-        pts=np.array(midpoint_circle(x,y,23));ax[1,0].scatter(pts[:,0],pts[:,1],s=9,c=col,marker='s')
-    ax[1,0].set(title='Five-ring arrangement',aspect='equal');ax[1,0].grid(alpha=.2)
-    pixels(ax[1,1],polar_circle(0,0,35),'Polar circle | trigonometric samples')
-    aa=antialiased_circle(35)
-    ax[1,2].imshow(aa,cmap='gray',vmin=0,vmax=1);ax[1,2].set_title('Midpoint | 4× supersampling');ax[1,2].axis('off')
-    save(fig,out/'circles.png',show)
-    Image.fromarray((aa*255).astype('uint8')).save(out/'antialiased_circle.png')
+    with Context(title='Lab 2 — Midpoint circles / PyOpenGL') as ctx:
+        cases=[(f'Midpoint | center ({cx},{cy}), r={r}',midpoint_circle(cx,cy,r),(cx-r-5,cy-r-5,cx+r+5,cy+r+5)),
+               ('Concentric midpoint circles',[p for rad in (15,25,35) for p in midpoint_circle(0,0,rad)],(-45,-45,45,45)),
+               ('Midpoint ellipse | two regions',midpoint_ellipse(0,0,45,25),(-55,-40,55,40))]
+        for i,(title,pts,bounds) in enumerate(cases):ctx.panel(i,3,2,bounds,title);ctx.points(pts)
+        ctx.panel(3,3,2,(-80,-45,80,55),'Five rings | midpoint GL_POINTS')
+        for x,y,col in [(-44,15,(0,.52,.78)),(0,15,(.1,.1,.1)),(44,15,(.87,0,.14)),(-22,-10,(.85,.65,0)),(22,-10,(0,.62,.24))]:ctx.points(midpoint_circle(x,y,23),col,3)
+        ctx.panel(4,3,2,(-45,-45,45,45),'Polar | trigonometric samples');ctx.points(polar_circle(0,0,35))
+        ctx.panel(5,3,2,(-45,-45,45,45),'Midpoint | smooth OpenGL points')
+        g=ctx.gl;g.glEnable(g.GL_POINT_SMOOTH);g.glEnable(g.GL_BLEND);g.glBlendFunc(g.GL_SRC_ALPHA,g.GL_ONE_MINUS_SRC_ALPHA);ctx.points(midpoint_circle(0,0,35),size=3);g.glDisable(g.GL_POINT_SMOOTH);g.glDisable(g.GL_BLEND)
+        ctx.save(out/'circles.png');ctx.metadata(out);ctx.hold()
+    gl_antialias(out)
     rows=[]
     for rad in (10,25,50,100,250):
         for fn in (midpoint_circle,polar_circle):
@@ -81,18 +89,19 @@ def demo(cx=15,cy=-10,r=35,show=False):
             for _ in range(100):pts=fn(0,0,rad)
             rows.append({'algorithm':fn.__name__,'radius':rad,'unique_pixels':len(pts),'mean_seconds':(perf_counter()-start)/100,'repeats':100})
     with (out/'benchmark.csv').open('w',newline='') as f:
-        w=csv.DictWriter(f,fieldnames=rows[0].keys());w.writeheader();w.writerows(rows)
-    frames=[]
-    for rad in range(0,46,2):
-        im=Image.new('RGB',(320,320),'white');draw=ImageDraw.Draw(im)
-        draw.text((10,10),f'Midpoint growing circle: radius {rad}',fill='black')
-        for x,y in midpoint_circle(0,0,rad):draw.rectangle((158+3*x,158-3*y,160+3*x,160-3*y),fill='#147d92')
-        frames.append(im)
-    frames[0].save(out/'growing_circle.gif',save_all=True,append_images=frames[1:],duration=100,loop=0)
-    print('Lab 2 outputs:',out)
+        writer=csv.DictWriter(f,fieldnames=rows[0]);writer.writeheader();writer.writerows(rows)
+    with Context(400,400,title='Lab 2 — growing OpenGL circle') as ctx:
+        frames=[]
+        for rad in range(0,46,2):
+            ctx.clear();ctx.panel(0,1,1,(-50,-50,50,50),f'Midpoint growing circle | radius {rad}');ctx.points(midpoint_circle(0,0,rad),size=3);frames.append(ctx.image())
+        save_gif(frames,out/'growing_circle.gif',100)
+        def animate(t):
+            rad=int(t*16)%46;ctx.clear();ctx.panel(0,1,1,(-50,-50,50,50),f'Growing circle | radius {rad}');ctx.points(midpoint_circle(0,0,rad),size=3)
+        ctx.hold(animate)
+    print('Lab 2 OpenGL outputs:',out)
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--center',nargs=2,type=int,default=[15,-10]);p.add_argument('--radius',type=int,default=35);p.add_argument('--show',action='store_true');a=p.parse_args()
+    p=arguments(argparse.ArgumentParser(description=__doc__));p.add_argument('--center',nargs=2,type=int,default=[15,-10]);p.add_argument('--radius',type=int,default=35);a=p.parse_args()
     if a.radius<0:p.error('--radius must be nonnegative')
     demo(*a.center,a.radius,a.show)

@@ -1,14 +1,18 @@
-# Lab 6 — Z-buffer hidden-surface removal
+# Lab 6 — Z-buffer hidden-surface removal in OpenGL
 
-Run `python -m lab_06.main` (optionally `--show`). The renderer implements triangle coverage, barycentric depth interpolation, and a depth test in Python/NumPy. It does not use a library's hidden-surface renderer.
+Run `python -m lab_06.main` for the real OpenGL window. Close it or press Escape to exit. Use `--headless` on Linux with Mesa/EGL to export without a display server.
 
-Screen coordinates are orthographic, with origin at the lower left. Samples lie at `(x+0.5,y+0.5)`. Depth starts at positive infinity; smaller z means nearer. For each covered sample, interpolate z, compare it with stored depth, and update depth, color, and owner only if nearer. Offscreen bounding boxes are clipped; degenerate triangles are skipped. Either winding is supported.
+The demonstration submits 3D triangles using PyOpenGL. OpenGL rasterizes them, interpolates depth, and resolves visibility with `GL_DEPTH_TEST` and `glDepthFunc(GL_LESS)`. The depth buffer clears to 1.0. Orthographic projection uses eye-space z = -input_depth, so a smaller input depth means a nearer surface. The first panel disables depth testing; the second enables it. The third visualizes the actual `GL_DEPTH_COMPONENT` readback (blue near, red far).
 
 ![Visibility and depth](outputs/visibility.png)
 
-Three overlapping slanted triangles create regions with different frontmost surfaces. The left panel shows submission-order painting; the middle shows per-pixel depth testing. `outputs/depth.npy` preserves floating-point depth, including infinity for untouched pixels; `object_ids.npy` records triangle ownership. `results.json` reports a probe pixel and checks reversed submission order.
+## Explicit implementation and independent comparison
 
-Equal depths retain the first surface, so exact coplanar ties can depend on submission order. Orthographic depth is interpolated linearly; perspective projection and perspective-correct interpolation are outside this lab. The renderer uses an inclusive edge test, not a GPU top-left fill rule. Surfaces are opaque, with no transparency or anti-aliasing. Work is proportional to summed triangle bounding-box areas; buffers require O(width×height) memory.
+`render` retains the explicit Python/NumPy Z-buffer implementation: test pixel-center triangle coverage, interpolate z barycentrically, compare, and update color/depth/owner. `draw_triangles` is the separate OpenGL path. The program compares CPU depths with actual GL depths on common covered pixels, then reverses submission order and checks the OpenGL result again.
+
+`outputs/depth.npy` is the actual OpenGL depth readback (1.0 means untouched); `depth_reference.npy` is the explicit CPU result (infinity means untouched). Both use bottom-left array indexing `[y,x]`. `object_ids.npy` is the CPU reference's triangle index buffer. `zbuffer_color.png` is the real GL color buffer, flipped only for top-left image encoding. `results.json` reports measured coverage differences, maximum depth discrepancy, and a probe pixel. `opengl.json` records vendor, version, backend and actual depth precision.
+
+Equal depths retain the first surface. OpenGL uses its normal polygon edge fill rules; the CPU reference uses inclusive edges, so boundary coverage can differ on other geometry. This example uses opaque orthographic triangles; transparency, perspective-correct attributes, and Z-fighting avoidance are outside its scope. CPU storage is O(width×height), and work scales with summed triangle bounding-box areas.
 
 ## Repeated manual questions
 

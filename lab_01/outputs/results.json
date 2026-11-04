@@ -34,17 +34,18 @@
       "algorithm": "dda",
       "lines": 1000,
       "pixels": 471597,
-      "best_seconds": 0.12788071499926446,
-      "mean_seconds": 0.13135775279970402,
+      "best_seconds": 0.11519315199996072,
+      "mean_seconds": 0.11919797460002428,
       "repeats": 5
     },
     {
       "algorithm": "bresenham",
       "lines": 1000,
       "pixels": 471597,
-      "best_seconds": 0.0687539390000893,
-      "mean_seconds": 0.07473252480012889,
+      "best_seconds": 0.06441258400002425,
+      "mean_seconds": 0.06649612220001018,
       "repeats": 5
     }
-  ]
+  ],
+  "display": "GL_POINTS / framebuffer readback"
 }

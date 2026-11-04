@@ -1,0 +1,29 @@
+
+1 translate | 2 rotate about pivot | 3 scale | 4 reflect | 5 shear | 6 reset | 0 quit
+Choice: tx ty: Matrix:
+ [[1. 0. 2.]
+ [0. 1. 1.]
+ [0. 0. 1.]] 
+Vertices:
+ [[0. 0.]
+ [4. 0.]
+ [4. 2.]
+ [2. 4.]
+ [0. 2.]] 
+Saved /workspace/scratch/84bb41e2d488/cg-vr-labs/lab_04/outputs/interactive.png
+
+1 translate | 2 rotate about pivot | 3 scale | 4 reflect | 5 shear | 6 reset | 0 quit
+Choice: degrees pivot_x pivot_y: Matrix:
+ [[ 0.70710678 -0.70710678  1.        ]
+ [ 0.70710678  0.70710678 -0.41421356]
+ [ 0.          0.          1.        ]] 
+Vertices:
+ [[ 1.         -0.41421356]
+ [ 3.82842712  2.41421356]
+ [ 2.41421356  3.82842712]
+ [-0.41421356  3.82842712]
+ [-0.41421356  1.        ]] 
+Saved /workspace/scratch/84bb41e2d488/cg-vr-labs/lab_04/outputs/interactive.png
+
+1 translate | 2 rotate about pivot | 3 scale | 4 reflect | 5 shear | 6 reset | 0 quit
+Choice: 

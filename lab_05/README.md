@@ -6,7 +6,7 @@ Run `python -m lab_05.main` to generate the nine-case demonstration. For custom 
 python -m lab_05.main --line -4 2 14 7 --rect 0 0 10 8
 ```
 
-Arguments are x0 y0 x1 y1 and xmin ymin xmax ymax. Results are clipped endpoints as JSON, or `null` for a rejected segment. `--show` opens the demonstration image.
+Arguments are x0 y0 x1 y1 and xmin ymin xmax ymax. Results are clipped endpoints as JSON, or `null` for a rejected segment. The default opens a real OpenGL window; close it or press Escape to exit. Add `--headless` for Linux EGL export.
 
 Each endpoint has a four-bit outcode: left=1, right=2, bottom=4, top=8. OR zero accepts the whole remaining segment. A nonzero AND rejects it. Otherwise, intersect one outside endpoint with the indicated boundary, recompute its code, and repeat. Boundary points are inside. Horizontal/vertical lines are handled without division by zero because shared outside bits are rejected before intersection. Nonfinite coordinates and invalid rectangles are rejected.
 
@@ -38,3 +38,7 @@ For viva questions 31–45, subtract 30 to obtain the corresponding numbered [La
 - Corner crossings may require more than one boundary intersection.
 - A segment touching only a corner returns two identical endpoints at that corner.
 - This clips line segments, not filled polygons; polygon clipping needs a different algorithm.
+
+## OpenGL display
+
+The explicit Cohen–Sutherland function computes the clipped endpoints in Python. PyOpenGL draws the input in gray, clipping rectangle in dark gray, and accepted segment in teal with `GL_LINE_STRIP` and point markers. OpenGL is not used as a substitute for the clipping algorithm. The PNG is a framebuffer readback, and `outputs/opengl.json` records the context.

@@ -1,6 +1,6 @@
 # Lab 4 — Composite transformations
 
-Run `python -m lab_04.main`. Add `--show` to open the comparison image. Use `python -m lab_04.main --menu` for the shared interactive transformation menu (its interactive output is saved in `lab_03/outputs/interactive.png`).
+Run `python -m lab_04.main`. The default opens live OpenGL windows. Close each window to continue, or use `--headless` for Linux EGL exports. Use `python -m lab_04.main --menu` for the shared interactive transformation menu (its interactive output is saved in `lab_04/outputs/interactive.png`).
 
 `compose(M1, M2, …)` accepts matrices in the order in which the operations act. With column vectors, it returns `… @ M2 @ M1`. The demonstration combines non-uniform scale, shear, arbitrary-pivot rotation, reflection in y=x, and translation on a concave polygon, and checks the resulting coordinates against sequential application. `outputs/matrices.json` contains every matrix, final vertex, and measured numerical discrepancy.
 
@@ -30,3 +30,7 @@ The manual numbers these 9–16; they duplicate Lab 3 questions 1–8.
 Manual questions 16–30 repeat Lab 3 questions 1–15 in the same order. The [complete answers](../lab_03/README.md#viva-answers-manual-115) apply directly: subtract 15 from the Lab 4 number to find the answer.
 
 Order matters: rotating `(1,0)` by 90° and then translating by `(2,0)` gives `(2,1)`. Translating first and then rotating gives `(0,3)`. The tests check these independently known results, as well as composition equivalence on 50 seeded points. Floating-point comparisons use a tolerance.
+
+## OpenGL rendering
+
+All transformed outlines and vertex markers are rendered using PyOpenGL. OpenGL framebuffer readback produces the PNGs and every GIF frame. CPU matrix calculations remain explicit so composition can be inspected and independently tested. See `outputs/opengl.json` for context metadata.

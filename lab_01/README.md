@@ -1,8 +1,10 @@
 # Lab 1 — DDA and Bresenham line drawing
 
-Run from the repository root: `python -m lab_01.main` (`--show` opens the PNG).
+Run from the repository root: `python -m lab_01.main` (opens a real OpenGL window; close each window to continue). Add `--headless` on Linux EGL to export and exit.
 
-Both algorithms generate the actual integer raster coordinates; Matplotlib only displays them. Endpoints are included, all octants and zero-length lines are supported. DDA uses a maximum-axis step count and floating-point increments. Bresenham maintains an integer error accumulator and steps one or both axes.
+Both algorithms generate the actual integer raster coordinates; PyOpenGL submits them as `GL_POINTS`; OpenGL performs rasterization. Endpoints are included, all octants and zero-length lines are supported. DDA uses a maximum-axis step count and floating-point increments. Bresenham maintains an integer error accumulator and steps one or both axes.
+
+Screenshots and every animation frame are captured from OpenGL using `glReadPixels`. `outputs/opengl.json` records the actual context and renderer. Timings measure the Python algorithm only, excluding OpenGL submission and readback.
 
 ## Assignment coverage
 

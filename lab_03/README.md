@@ -1,6 +1,6 @@
 # Lab 3 — 2D homogeneous transformations
 
-Run `python -m lab_03.main` for the complete demonstration, or `python -m lab_03.main --menu` for the interactive terminal menu. The menu accepts parameters, prints matrices and coordinates, and saves `outputs/interactive.png` after each operation. It applies successive choices to the current polygon; choice 6 resets it. `--show` opens the demonstration PNG.
+Run `python -m lab_03.main` for the complete demonstration, or `python -m lab_03.main --menu` for the interactive terminal menu. The menu accepts parameters, prints matrices and coordinates, and saves `outputs/interactive.png` after each operation. The OpenGL window updates after each terminal choice. Keep the terminal focused to enter parameters; it applies successive choices to the current polygon; choice 6 resets it. The default demo opens real OpenGL windows; close each to continue. Use `--headless` for Linux EGL export.
 
 The shared `common/transforms.py` implements translation, rotation, non-uniform scaling, reflection (x, y, origin, y=x), and two-axis shear. All geometry passes through one `apply` function. It computes `M @ [x,y,1]` and divides by the homogeneous coordinate. Column vectors and degrees are used throughout.
 
@@ -51,3 +51,7 @@ For column vectors, translation is `[[1,0,tx],[0,1,ty],[0,0,1]]`, rotation is `[
 13. An affine transformation is a linear transformation followed by translation; it preserves parallelism.
 14. Uses include CAD editing, image manipulation, sprites, and map coordinates.
 15. 3D introduces z and 4×4 homogeneous matrices; see the comparison table.
+
+## OpenGL rendering
+
+Python calculates the homogeneous transforms, then PyOpenGL submits transformed vertices with `GL_LINE_LOOP` and `GL_POINTS`. Rotation GIF frames come from actual OpenGL redraws and `glReadPixels`; the desktop animation also rotates continuously in a live window. `outputs/opengl.json` records the tested context.

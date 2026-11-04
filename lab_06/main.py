@@ -2,10 +2,9 @@
 import argparse
 import json
 import math
-import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
-from common.display import output_dir,save
+from common.gl_runtime import Context,output_dir,arguments
 
 
 def render(triangles,width=256,height=256,depth_test=True):
@@ -44,25 +43,53 @@ def scene():
             (np.array([[5,105,.48],[250,105,.48],[128,180,.48]]),[.85,.69,.20])]
 
 
+def draw_triangles(ctx,triangles,depth_test=True):
+    """Submit geometry, not a precomputed image. GL performs coverage and depth testing."""
+    g=ctx.gl;g.glClear(g.GL_DEPTH_BUFFER_BIT);g.glUseProgram(0)
+    if depth_test:g.glEnable(g.GL_DEPTH_TEST);g.glDepthFunc(g.GL_LESS)
+    else:g.glDisable(g.GL_DEPTH_TEST)
+    g.glBegin(g.GL_TRIANGLES)
+    for vertices,rgb in triangles:
+        g.glColor3f(*rgb)
+        for x,y,z in vertices:g.glVertex3f(float(x),float(y),-float(z))
+    g.glEnd();g.glDisable(g.GL_DEPTH_TEST)
+
+
+def opengl_render(triangles,width=256,height=256):
+    """Exact screen-space GL rendering for independent CPU/GL depth comparison."""
+    with Context(width,height,title='Z-buffer framebuffer') as ctx:
+        g=ctx.gl;g.glViewport(0,0,width,height);g.glMatrixMode(g.GL_PROJECTION);g.glLoadIdentity();g.glOrtho(0,width,0,height,0,1);g.glMatrixMode(g.GL_MODELVIEW);g.glLoadIdentity()
+        draw_triangles(ctx,triangles);g.glFinish()
+        color=np.frombuffer(g.glReadPixels(0,0,width,height,g.GL_RGB,g.GL_UNSIGNED_BYTE),dtype=np.uint8).reshape(height,width,3).astype(float)/255
+        depth=np.asarray(g.glReadPixels(0,0,width,height,g.GL_DEPTH_COMPONENT,g.GL_FLOAT),dtype=np.float32).reshape(height,width).copy()
+        ctx.check();return color,depth,ctx.info
+
+
 def demo(show=False):
-    out=output_dir(__file__);tris=scene();color,depth,owner=render(tris);reverse,revdepth,_=render(list(reversed(tris)))
-    np.testing.assert_allclose(color,reverse);np.testing.assert_allclose(depth,revdepth)
-    painter,_,_=render(tris,depth_test=False)
-    Image.fromarray((np.flipud(color)*255).astype('uint8')).save(out/'zbuffer_color.png')
-    np.save(out/'depth.npy',depth);np.save(out/'object_ids.npy',owner)
-    fig,axes=plt.subplots(1,3,figsize=(13,4.5))
-    axes[0].imshow(painter,origin='lower');axes[0].set_title('Without depth test | last submitted wins')
-    axes[1].imshow(color,origin='lower');axes[1].set_title('Z-buffer | nearest surface per pixel')
-    im=axes[2].imshow(np.ma.masked_invalid(depth),origin='lower',cmap='viridis_r',vmin=0,vmax=1);axes[2].set_title('Depth | smaller is nearer');fig.colorbar(im,ax=axes[2],shrink=.8,label='z')
-    for ax in axes:ax.set(xlabel='screen x',ylabel='screen y')
-    save(fig,out/'visibility.png',show)
+    out=output_dir(__file__);tris=scene();cpu,cpu_depth,owner=render(tris)
+    glcolor,depth,info=opengl_render(tris);reverse,reverse_depth,_=opengl_render(list(reversed(tris)))
+    np.testing.assert_allclose(glcolor,reverse,atol=1/255);np.testing.assert_allclose(depth,reverse_depth,atol=1e-6)
+    covered=depth<1;both=covered&np.isfinite(cpu_depth)
+    max_error=float(np.max(np.abs(depth[both]-cpu_depth[both])))
+    if max_error>2e-6:raise AssertionError(f'CPU/OpenGL depth mismatch: {max_error}')
+    Image.fromarray((np.flipud(glcolor)*255).astype('uint8')).save(out/'zbuffer_color.png')
+    np.save(out/'depth.npy',depth);np.save(out/'depth_reference.npy',cpu_depth);np.save(out/'object_ids.npy',owner)
+    with Context(1200,460,title='Lab 6 — actual OpenGL depth buffer') as ctx:
+        ctx.panel(0,3,1,(0,0,256,256),'Depth test OFF | submission order',depth=True);draw_triangles(ctx,tris,False)
+        ctx.panel(1,3,1,(0,0,256,256),'Depth test ON | GL_LESS',depth=True);draw_triangles(ctx,tris,True)
+        ctx.panel(2,3,1,(0,0,256,256),'glReadPixels depth | blue=near',depth=True)
+        g=ctx.gl;g.glPointSize(2);g.glBegin(g.GL_POINTS)
+        for y,x in np.argwhere(covered):
+            z=float(depth[y,x]);g.glColor3f(z,.65*(1-z)+.12,1-z);g.glVertex2f(x+.5,y+.5)
+        g.glEnd();ctx.save(out/'visibility.png');ctx.metadata(out);ctx.hold()
     y,x=130,128
-    (out/'results.json').write_text(json.dumps({'width':256,'height':256,'projection':'orthographic; pixel centers (x+0.5,y+0.5)',
-        'near_rule':'smaller z wins; equal depths retain first submitted sample',
-        'order_invariant_for_demo':bool(np.allclose(color,reverse)),
-        'covered_pixels':int(np.isfinite(depth).sum()),'probe':{'x':x,'y':y,'depth':float(depth[y,x]),'triangle_index':int(owner[y,x]),'rgb':color[y,x].tolist()}},indent=2))
-    print('Lab 6 outputs:',out)
+    (out/'results.json').write_text(json.dumps({'projection':'orthographic; smaller z is nearer','near_rule':'GL_DEPTH_TEST with GL_LESS; clear depth 1.0',
+        'covered_pixels':int(covered.sum()),'cpu_gl_common_pixels':int(both.sum()),'maximum_cpu_gl_depth_error':max_error,
+        'coverage_difference_pixels':int(np.count_nonzero(covered!=np.isfinite(cpu_depth))),
+        'reversed_submission_order_matches':bool(np.allclose(glcolor,reverse,atol=1/255)),
+        'probe':{'x':x,'y':y,'gl_depth':float(depth[y,x]),'cpu_depth':float(cpu_depth[y,x]),'gl_rgb':glcolor[y,x].tolist()},'context':info},indent=2))
+    print('Lab 6 OpenGL outputs:',out)
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--show',action='store_true');demo(p.parse_args().show)
+    p=arguments(argparse.ArgumentParser(description=__doc__));a=p.parse_args();demo(a.show)

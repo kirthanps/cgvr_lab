@@ -1,12 +1,12 @@
 # Lab 7 — Phong illumination of a 3D object
 
-Run `python -m lab_07.main` or change the light and shininess:
+Run `python -m lab_07.main` for real OpenGL windows, or change the light and shininess:
 
 ```bash
 python -m lab_07.main --light -3 4 5 --shininess 64
 ```
 
-Add `--show` to open the components image. The object is a unit sphere at the origin. For visible samples, its positive-z hemisphere is reconstructed analytically from `z=sqrt(1-x²-y²)`. The unit surface normal is the normalized position. This is a 3D surface rendered under orthographic projection, with eye at `(0,0,5)`; a plotting library does not compute the illumination.
+Close each window to proceed (Escape also exits the active view). Add `--headless` on Linux EGL for export without windows. The object is a real triangle mesh of a unit sphere centered at the origin, using 40 latitude stacks and 80 longitude slices. Vertex normals are analytic sphere normals; the fragment shader interpolates and normalizes them before computing illumination. OpenGL depth testing selects the visible surface under orthographic projection. The eye is `(0,0,5)`.
 
 For normalized normal N, light direction L, and viewing direction V:
 
@@ -16,7 +16,7 @@ For normalized normal N, light direction L, and viewing direction V:
 - Specular: `ks * white * max(R·V, 0)^shininess`, set to zero if N·L ≤ 0.
 - Final RGB: clamp the sum to [0,1] for display.
 
-The model uses reflection-vector Phong, not the Blinn half-vector approximation. Directions are normalized per surface point. Negative light contributions are clamped, including specular light from behind the surface. Zero-length vectors and invalid coefficients are rejected.
+`shaders/phong.vert` and `shaders/phong.frag` contain the actual GLSL 1.20 vertex and fragment shaders, compiled and linked by PyOpenGL. The fragment shader performs reflection-vector Phong, not the Blinn half-vector approximation. Directions are normalized per surface point. Negative light contributions are clamped, including specular light from behind the surface. Zero-length vectors and invalid coefficients are rejected.
 
 ![Components](outputs/phong_components.png)
 
@@ -24,9 +24,9 @@ The model uses reflection-vector Phong, not the Blinn half-vector approximation.
 
 ![Light position comparison](outputs/light_positions.png)
 
-`outputs/phong_sphere.png` is the standalone rendered image. `results.json` stores coefficients, geometry assumptions, and independently inspectable RGB contributions at the front pole. Tests verify known aligned-light values, back-light suppression, unit-normal invariance, and narrower specular response at higher shininess.
+`outputs/phong_sphere.png` is an actual OpenGL framebuffer capture. Every comparison is rendered with the same GLSL program. `results.json` stores mesh details, coefficients, and CPU reference RGB contributions at the front pole; `opengl.json` records the GL context. The interactive final window animates the light around the sphere. Integration tests compile/link the shaders and compare a real rendered planar sample with a known CPU Phong result, alongside the existing lighting tests.
 
-This is an empirical local illumination model. It omits cast shadows, distance attenuation, indirect illumination, gamma correction, and physically based energy conservation. Values are linear RGB before direct display; no claim of photometric realism is made. The sphere is sampled analytically rather than triangulated, so this experiment isolates illumination from Lab 6 rasterization.
+This is an empirical local illumination model. It omits cast shadows, distance attenuation, indirect illumination, gamma correction, and physically based energy conservation. Values are linear RGB before direct display; no claim of photometric realism is made. The old analytic CPU `sphere` renderer remains only as a numerical test reference; it is not used to produce any delivered scene image. Actual outputs use triangle geometry and GLSL fragment shading.
 
 ## Repeated manual questions
 

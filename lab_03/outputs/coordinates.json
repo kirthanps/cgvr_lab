@@ -1,5 +1,5 @@
 {
-  "Translate (4, 2)": {
+  "Translate (4,2)": {
     "matrix": [
       [
         1.0,
@@ -81,7 +81,7 @@
       ]
     ]
   },
-  "Non-uniform scale (1.6, 0.6)": {
+  "Non-uniform scale (1.6,0.6)": {
     "matrix": [
       [
         1.6,
@@ -204,7 +204,7 @@
       ]
     ]
   },
-  "Rotate 60 around pivot (2, 1)": {
+  "Rotate 60 | pivot (2,1)": {
     "matrix": [
       [
         0.5000000000000001,

@@ -1,10 +1,9 @@
 """Lab 7: per-surface-point Phong illumination on an analytic 3D sphere."""
 import argparse
 import json
-import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
-from common.display import output_dir,save
+from common.gl_runtime import Context,output_dir,arguments
 
 
 def normalize(v):
@@ -42,29 +41,84 @@ def sphere(size=320,**kwargs):
     return images,mask
 
 
+def compile_phong(ctx):
+    from pathlib import Path
+    from OpenGL.GL.shaders import compileProgram,compileShader
+    g=ctx.gl;root=Path(__file__).resolve().parent/'shaders'
+    return compileProgram(compileShader((root/'phong.vert').read_text(),g.GL_VERTEX_SHADER),
+                          compileShader((root/'phong.frag').read_text(),g.GL_FRAGMENT_SHADER))
+
+
+def uniforms(ctx,program,light=(3,4,5),shininess=32,component=3,base=(.12,.48,.72),ka=.12,kd=.65,ks=.5):
+    g=ctx.gl
+    for name,value in [('lightPosition',light),('eyePosition',(0,0,5)),('baseColor',base)]:g.glUniform3f(g.glGetUniformLocation(program,name),*value)
+    for name,value in [('ka',ka),('kd',kd),('ks',ks),('shininess',shininess)]:g.glUniform1f(g.glGetUniformLocation(program,name),float(value))
+    g.glUniform1i(g.glGetUniformLocation(program,'component'),component)
+
+
+def sphere_mesh(stacks=40,slices=80):
+    """Triangle mesh with analytic unit-sphere vertex normals (position = normal)."""
+    def point(i,j):
+        theta=np.pi*i/stacks;phi=2*np.pi*j/slices
+        return (np.sin(theta)*np.cos(phi),np.sin(theta)*np.sin(phi),np.cos(theta))
+    vertices=[]
+    for i in range(stacks):
+        for j in range(slices):
+            a,b,c,d=point(i,j),point(i+1,j),point(i+1,j+1),point(i,j+1)
+            if i>0:vertices.extend((a,b,d))
+            if i<stacks-1:vertices.extend((b,c,d))
+    return np.asarray(vertices,dtype=np.float32)
+
+
+def draw_sphere(ctx,program,mesh,light=(3,4,5),shininess=32,component=3):
+    g=ctx.gl;g.glClear(g.GL_DEPTH_BUFFER_BIT);g.glEnable(g.GL_DEPTH_TEST);g.glDepthFunc(g.GL_LESS);g.glUseProgram(program)
+    uniforms(ctx,program,light,shininess,component)
+    # Vertex arrays submit real triangle geometry and normals to the shader pipeline.
+    g.glEnableClientState(g.GL_VERTEX_ARRAY);g.glEnableClientState(g.GL_NORMAL_ARRAY)
+    g.glVertexPointer(3,g.GL_FLOAT,0,mesh);g.glNormalPointer(g.GL_FLOAT,0,mesh)
+    g.glDrawArrays(g.GL_TRIANGLES,0,len(mesh))
+    g.glDisableClientState(g.GL_VERTEX_ARRAY);g.glDisableClientState(g.GL_NORMAL_ARRAY)
+    g.glUseProgram(0);g.glDisable(g.GL_DEPTH_TEST);ctx.check()
+
+
+def render_comparison(out,name,titles,settings,mesh):
+    with Context(400*len(titles),430,title='Lab 7 — Phong GLSL / PyOpenGL') as ctx:
+        program=compile_phong(ctx)
+        try:
+            for i,(title,params) in enumerate(zip(titles,settings)):
+                ctx.panel(i,len(titles),1,(-1.12,-1.12,1.12,1.12),title);draw_sphere(ctx,program,mesh,**params)
+            ctx.save(out/name);ctx.metadata(out);ctx.hold()
+        finally:ctx.gl.glDeleteProgram(program)
+
+
 def demo(light=(3,4,5),shininess=32,show=False):
-    out=output_dir(__file__);images,mask=sphere(light=light,shininess=shininess)
-    fig,axes=plt.subplots(1,4,figsize=(14,4))
-    for ax,img,title in zip(axes,images,['Ambient','Diffuse (Lambert)','Specular (Phong)','Combined illumination']):
-        ax.imshow(img,origin='lower');ax.axis('off');ax.set_title(title)
-    save(fig,out/'phong_components.png',show)
-    Image.fromarray((np.flipud(images[-1])*255).astype('uint8')).save(out/'phong_sphere.png')
-    fig,axes=plt.subplots(1,3,figsize=(11,4))
-    for ax,n in zip(axes,[8,32,128]):
-        img,_=sphere(light=light,shininess=n);ax.imshow(img[-1],origin='lower');ax.axis('off');ax.set_title(f'Shininess {n}')
-    save(fig,out/'shininess.png')
-    fig,axes=plt.subplots(1,3,figsize=(11,4))
-    for ax,pos in zip(axes,[(-3,4,5),(3,4,5),(0,-4,3)]):
-        img,_=sphere(light=pos,shininess=shininess);ax.imshow(img[-1],origin='lower');ax.axis('off');ax.set_title(f'Light {pos}')
-    save(fig,out/'light_positions.png')
+    # Validate the same model parameters before creating a context.
+    phong([[0,0,1]],[[0,0,1]],light=light,shininess=shininess)
+    out=output_dir(__file__);mesh=sphere_mesh()
+    render_comparison(out,'phong_components.png',['Ambient','Diffuse | Lambert','Specular | Phong','Combined | GLSL fragments'],
+        [dict(light=light,shininess=shininess,component=i) for i in range(4)],mesh)
+    render_comparison(out,'shininess.png',[f'Shininess {n}' for n in (8,32,128)],
+        [dict(light=light,shininess=n) for n in (8,32,128)],mesh)
+    positions=[(-3,4,5),(3,4,5),(0,-4,3)]
+    render_comparison(out,'light_positions.png',[f'Light {pos}' for pos in positions],
+        [dict(light=pos,shininess=shininess) for pos in positions],mesh)
+    with Context(500,500,title='Lab 7 — live shader-rendered sphere') as ctx:
+        program=compile_phong(ctx)
+        try:
+            def frame(angle=0):
+                ctx.clear();ctx.panel(0,1,1,(-1.12,-1.12,1.12,1.12),'Phong illumination | real GLSL')
+                pos=light if angle==0 else (4*np.cos(angle),4*np.sin(angle),5)
+                draw_sphere(ctx,program,mesh,light=pos,shininess=shininess)
+            frame();ctx.save(out/'phong_sphere.png');ctx.hold(lambda t:frame(t*.6+.001))
+        finally:ctx.gl.glDeleteProgram(program)
     a,d,s=phong(np.array([[0.,0.,1.]]),np.array([[0.,0.,1.]]),light=light,shininess=shininess)
-    (out/'results.json').write_text(json.dumps({'object':'unit sphere centered at origin','eye':[0,0,5],'light':list(light),
-        'ka':.12,'kd':.65,'ks':.5,'shininess':shininess,'base_rgb':[.12,.48,.72],
-        'visible_surface_samples':int(mask.sum()),'front_pole':{'point':[0,0,1],'ambient':a[0].tolist(),'diffuse':d[0].tolist(),'specular':s[0].tolist(),'combined_unclamped':(a+d+s)[0].tolist()}},indent=2))
-    print('Lab 7 outputs:',out)
+    (out/'results.json').write_text(json.dumps({'object':'unit sphere triangle mesh; 40 stacks x 80 slices','triangles':len(mesh)//3,
+        'lighting':'per-fragment GLSL reflection-vector Phong','eye':[0,0,5],'light':list(light),'ka':.12,'kd':.65,'ks':.5,'shininess':shininess,'base_rgb':[.12,.48,.72],
+        'cpu_reference_front_pole':{'ambient':a[0].tolist(),'diffuse':d[0].tolist(),'specular':s[0].tolist(),'combined_unclamped':(a+d+s)[0].tolist()}},indent=2))
+    print('Lab 7 OpenGL outputs:',out)
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--light',type=float,nargs=3,default=[3,4,5]);p.add_argument('--shininess',type=float,default=32);p.add_argument('--show',action='store_true');a=p.parse_args()
+    p=arguments(argparse.ArgumentParser(description=__doc__));p.add_argument('--light',type=float,nargs=3,default=[3,4,5]);p.add_argument('--shininess',type=float,default=32);a=p.parse_args()
     try:demo(a.light,a.shininess,a.show)
     except ValueError as e:p.error(str(e))

@@ -2,9 +2,7 @@
 import argparse
 import json
 import math
-import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
-from common.display import output_dir,save
+from common.gl_runtime import Context,output_dir,arguments,GRAY,TEAL
 
 LEFT,RIGHT,BOTTOM,TOP=1,2,4,8
 
@@ -41,20 +39,21 @@ def demo(show=False):
     cases=[('Inside',(2,2),(8,6)),('Crossing',(-4,2),(14,7)),('Outside',(-3,10),(13,10)),
            ('Vertical',(5,-4),(5,12)),('Horizontal',(-4,4),(14,4)),('Boundary',(0,-3),(0,11)),
            ('Corner touch',(-3,3),(3,-3)),('Point',(7,3),(7,3)),('Steep',(-1,-5),(8,15))]
-    fig,axes=plt.subplots(3,3,figsize=(12,10));data=[]
-    for ax,(name,a,b) in zip(axes.flat,cases):
-        result=clip_line(a,b,rect);ax.add_patch(Rectangle((0,0),10,8,fill=False,edgecolor='#555555',lw=1.5))
-        ax.plot([a[0],b[0]],[a[1],b[1]],'--o',c='#bbbbbb',lw=1,markersize=3,label='Input')
-        if result:
-            u,v=result;ax.plot([u[0],v[0]],[u[1],v[1]],'-o',c='#147d92',lw=3,markersize=4,label='Accepted')
-        ax.set(title=name+(' | accept' if result else ' | reject'),xlim=(-5,15),ylim=(-6,16),aspect='equal');ax.grid(alpha=.2);ax.legend(fontsize=7)
-        data.append({'case':name,'input':[a,b],'outcodes':[outcode(*a,rect),outcode(*b,rect)],'clipped':result})
-    save(fig,out/'clipping.png',show);(out/'results.json').write_text(json.dumps({'rectangle':rect,'cases':data},indent=2))
-    print('Lab 5 outputs:',out)
+    data=[]
+    with Context(1080,1080,title='Lab 5 — Cohen-Sutherland / PyOpenGL') as ctx:
+        for i,(name,a,b) in enumerate(cases):
+            result=clip_line(a,b,rect);ctx.panel(i,3,3,(-5,-6,15,16),name+(' | accept' if result is not None else ' | reject'))
+            ctx.line([(0,0),(10,0),(10,8),(0,8)],(.3,.3,.3),1,closed=True)
+            ctx.line([a,b],GRAY,1);ctx.points([a,b],GRAY,4)
+            if result is not None:ctx.line(result,TEAL,3);ctx.points(result,TEAL,5)
+            data.append({'case':name,'input':[a,b],'outcodes':[outcode(*a,rect),outcode(*b,rect)],'clipped':result})
+        ctx.save(out/'clipping.png');ctx.metadata(out);ctx.hold()
+    (out/'results.json').write_text(json.dumps({'rectangle':rect,'cases':data},indent=2))
+    print('Lab 5 OpenGL outputs:',out)
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--show',action='store_true');p.add_argument('--line',type=float,nargs=4,metavar=('X0','Y0','X1','Y1'));p.add_argument('--rect',type=float,nargs=4,default=[0,0,10,8],metavar=('XMIN','YMIN','XMAX','YMAX'));a=p.parse_args()
+    p=arguments(argparse.ArgumentParser(description=__doc__));p.add_argument('--line',type=float,nargs=4);p.add_argument('--rect',type=float,nargs=4,default=[0,0,10,8]);a=p.parse_args()
     if a.line:
         try:print(json.dumps(clip_line(a.line[:2],a.line[2:],a.rect)))
         except ValueError as e:p.error(str(e))

@@ -1,19 +1,32 @@
 {
-  "width": 256,
-  "height": 256,
-  "projection": "orthographic; pixel centers (x+0.5,y+0.5)",
-  "near_rule": "smaller z wins; equal depths retain first submitted sample",
-  "order_invariant_for_demo": true,
+  "projection": "orthographic; smaller z is nearer",
+  "near_rule": "GL_DEPTH_TEST with GL_LESS; clear depth 1.0",
   "covered_pixels": 28374,
+  "cpu_gl_common_pixels": 28374,
+  "maximum_cpu_gl_depth_error": 1.0107281944726765e-07,
+  "coverage_difference_pixels": 0,
+  "reversed_submission_order_matches": true,
   "probe": {
     "x": 128,
     "y": 130,
-    "depth": 0.48,
-    "triangle_index": 2,
-    "rgb": [
-      0.85,
-      0.69,
+    "gl_depth": 0.47999998927116394,
+    "cpu_depth": 0.48,
+    "gl_rgb": [
+      0.8509803921568627,
+      0.6901960784313725,
       0.2
+    ]
+  },
+  "context": {
+    "vendor": "Mesa",
+    "renderer": "llvmpipe (LLVM 20.1.2, 256 bits)",
+    "version": "4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.2",
+    "glsl": "4.50",
+    "backend": "EGL pbuffer",
+    "depth_bits": 24,
+    "framebuffer": [
+      256,
+      256
     ]
   }
 }

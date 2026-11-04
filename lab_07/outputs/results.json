@@ -1,5 +1,7 @@
 {
-  "object": "unit sphere centered at origin",
+  "object": "unit sphere triangle mesh; 40 stacks x 80 slices",
+  "triangles": 6240,
+  "lighting": "per-fragment GLSL reflection-vector Phong",
   "eye": [
     0,
     0,
@@ -19,13 +21,7 @@
     0.48,
     0.72
   ],
-  "visible_surface_samples": 63692,
-  "front_pole": {
-    "point": [
-      0,
-      0,
-      1
-    ],
+  "cpu_reference_front_pole": {
     "ambient": [
       0.0144,
       0.0576,

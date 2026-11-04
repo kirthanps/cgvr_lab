@@ -5,9 +5,7 @@ import json
 import math
 import random
 from time import perf_counter
-import matplotlib.pyplot as plt
-from PIL import Image, ImageDraw
-from common.display import output_dir, pixels, save
+from common.gl_runtime import Context, output_dir, arguments, save_gif
 
 
 def round_pixel(x):
@@ -55,47 +53,41 @@ def polyline(vertices, algorithm=bresenham):
 
 
 def demo(show=False):
-    out = output_dir(__file__)
-    fig, axes = plt.subplots(2,3,figsize=(13,8))
-    ends = [(45,18),(18,45),(-18,45),(-45,18),(-45,-18),(-18,-45),(18,-45),(45,-18)]
-    for ax,fn in zip(axes[0,:2],(dda,bresenham)):
-        pixels(ax,[p for end in ends for p in fn(0,0,*end)],fn.__name__+' | all eight octants')
-    line = dda(0,0,65,30)
-    pixels(axes[0,2],styled(line,'dashed'),'DDA | dashed')
-    pixels(axes[1,0],styled(line,'dotted'),'DDA | dotted')
-    pixels(axes[1,1],styled(bresenham(0,0,65,30),width=5),'Bresenham | width 5')
-    house = [(0,0),(50,0),(50,35),(25,60),(0,35),(0,0),(0,35),(50,35)]
-    detail = [(20,0),(20,23),(30,23),(30,0)]
-    pixels(axes[1,2],polyline(house)+polyline(detail),'Connected segments | wireframe house')
-    save(fig,out/'line_algorithms.png',show)
-    rng=random.Random(4104)
-    lines=[tuple(rng.randint(-500,500) for _ in range(4)) for _ in range(1000)]
-    rows=[]
+    out=output_dir(__file__)
+    ends=[(45,18),(18,45),(-18,45),(-45,18),(-45,-18),(-18,-45),(18,-45),(45,-18)]
+    line=dda(0,0,65,30)
+    house=[(0,0),(50,0),(50,35),(25,60),(0,35),(0,0),(0,35),(50,35)]
+    cases=[('DDA | eight octants',[p for end in ends for p in dda(0,0,*end)],(-55,-55,55,55)),
+           ('Bresenham | eight octants',[p for end in ends for p in bresenham(0,0,*end)],(-55,-55,55,55)),
+           ('DDA | dashed',styled(line,'dashed'),(-5,-10,70,40)),
+           ('DDA | dotted',styled(line,'dotted'),(-5,-10,70,40)),
+           ('Bresenham | square brush width 5',styled(bresenham(0,0,65,30),width=5),(-5,-10,70,40)),
+           ('Connected segments | house',polyline(house)+polyline([(20,0),(20,23),(30,23),(30,0)]),(-10,-5,60,65))]
+    with Context(title='Lab 1 — DDA and Bresenham / PyOpenGL') as ctx:
+        for i,(title,pts,bounds) in enumerate(cases):
+            ctx.panel(i,3,2,bounds,title);ctx.axes(bounds);ctx.points(pts,size=2)
+        ctx.save(out/'line_algorithms.png');ctx.metadata(out);ctx.hold()
+    rng=random.Random(4104);lines=[tuple(rng.randint(-500,500) for _ in range(4)) for _ in range(1000)];rows=[]
     for fn in (dda,bresenham):
-        samples=[]
+        times=[]
         for _ in range(5):
-            start=perf_counter()
-            count=sum(len(fn(*line)) for line in lines)
-            samples.append(perf_counter()-start)
-        rows.append({'algorithm':fn.__name__,'lines':1000,'pixels':count,'best_seconds':min(samples),
-                     'mean_seconds':sum(samples)/len(samples),'repeats':5})
+            start=perf_counter();count=sum(len(fn(*line)) for line in lines);times.append(perf_counter()-start)
+        rows.append({'algorithm':fn.__name__,'lines':1000,'pixels':count,'best_seconds':min(times),'mean_seconds':sum(times)/5,'repeats':5})
     with (out/'benchmark.csv').open('w',newline='') as f:
-        w=csv.DictWriter(f,fieldnames=rows[0].keys());w.writeheader();w.writerows(rows)
-    pts=bresenham(10,10,110,65)
-    frames=[]
-    for n in range(1,len(pts)+1,3):
-        im=Image.new('RGB',(480,320),'white');draw=ImageDraw.Draw(im)
-        draw.text((12,10),'Bresenham: incremental pixel generation',fill='black')
-        for x,y in pts[:n]:
-            draw.rectangle((x*4,300-y*4,x*4+3,303-y*4),fill='#147d92')
-        frames.append(im)
-    frames.append(frames[-1].copy())
-    # Include the exact final endpoint even when the stride does not divide the count.
-    draw=ImageDraw.Draw(frames[-1]); x,y=pts[-1];draw.rectangle((x*4,300-y*4,x*4+3,303-y*4),fill='#147d92')
-    frames[0].save(out/'line_animation.gif',save_all=True,append_images=frames[1:],duration=90,loop=0)
-    (out/'results.json').write_text(json.dumps({'sample':bresenham(0,0,6,3),'benchmark':rows},indent=2))
-    print('Lab 1 outputs:',out)
+        writer=csv.DictWriter(f,fieldnames=rows[0]);writer.writeheader();writer.writerows(rows)
+    pts=bresenham(10,10,110,65);frames=[]
+    with Context(600,360,title='Lab 1 — incremental OpenGL points') as ctx:
+        for n in list(range(1,len(pts),3))+[len(pts)]:
+            ctx.clear();ctx.panel(0,1,1,(0,0,120,75),f'Bresenham | {n}/{len(pts)} pixels');ctx.points(pts[:n],size=4);frames.append(ctx.image())
+        save_gif(frames,out/'line_animation.gif')
+        ctx.hold(lambda t: draw_animation(ctx,pts,t))
+    (out/'results.json').write_text(json.dumps({'sample':bresenham(0,0,6,3),'benchmark':rows,'display':'GL_POINTS / framebuffer readback'},indent=2))
+    print('Lab 1 OpenGL outputs:',out)
+
+
+def draw_animation(ctx,pts,t):
+    n=1+int(t*35)%len(pts);ctx.clear();ctx.panel(0,1,1,(0,0,120,75),'Bresenham | incremental rasterization');ctx.points(pts[:n],size=4)
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('--show',action='store_true');a=p.parse_args();demo(a.show)
+    p=arguments(argparse.ArgumentParser(description=__doc__));a=p.parse_args();demo(a.show)
