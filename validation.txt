@@ -16,12 +16,20 @@ test_order_winding_and_degenerate (test_lab06.Depth.test_order_winding_and_degen
 test_finite_sphere_and_validation (test_lab07.Phong.test_finite_sphere_and_validation) ... ok
 test_front_and_back_light (test_lab07.Phong.test_front_and_back_light) ... ok
 test_shininess_and_normalization (test_lab07.Phong.test_shininess_and_normalization) ... ok
+test_interpolated_color_and_tint (test_lab08.BasicShaderGL.test_interpolated_color_and_tint) ... ok
+test_rotation_and_inverse (test_lab08.ShaderMath.test_rotation_and_inverse) ... ok
+test_predicted_viewport_positions_reach_real_framebuffer (test_lab10.ViewingGL.test_predicted_viewport_positions_reach_real_framebuffer) ... ok
+test_camera_known_positions (test_lab10.ViewingMath.test_camera_known_positions) ... ok
+test_homogeneous_clipping (test_lab10.ViewingMath.test_homogeneous_clipping) ... ok
+test_invalid_parameters (test_lab10.ViewingMath.test_invalid_parameters) ... ok
+test_projection_and_viewport (test_lab10.ViewingMath.test_projection_and_viewport) ... ok
+test_stage_composition (test_lab10.ViewingMath.test_stage_composition) ... ok
 test_actual_depth_against_independent_cpu_buffer (test_opengl.OpenGLIntegration.test_actual_depth_against_independent_cpu_buffer) ... ok
 test_gl_points_reach_framebuffer (test_opengl.OpenGLIntegration.test_gl_points_reach_framebuffer) ... ok
 test_glsl_phong_matches_known_planar_sample (test_opengl.OpenGLIntegration.test_glsl_phong_matches_known_planar_sample) ... ok
 
 ----------------------------------------------------------------------
-Ran 21 tests in 0.430s
+Ran 29 tests in 0.612s
 
 OK
-Validated 20 images/animations, 146 decoded frames, numerical outputs, seven OpenGL contexts, and local Markdown file links.
+Validated 25 images/animations, 221 decoded frames, numerical outputs, nine OpenGL contexts, and local Markdown file links.

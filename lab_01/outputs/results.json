@@ -34,16 +34,16 @@
       "algorithm": "dda",
       "lines": 1000,
       "pixels": 471597,
-      "best_seconds": 0.11519315199996072,
-      "mean_seconds": 0.11919797460002428,
+      "best_seconds": 0.12618811900006222,
+      "mean_seconds": 0.13486628140008178,
       "repeats": 5
     },
     {
       "algorithm": "bresenham",
       "lines": 1000,
       "pixels": 471597,
-      "best_seconds": 0.06441258400002425,
-      "mean_seconds": 0.06649612220001018,
+      "best_seconds": 0.07338089799986847,
+      "mean_seconds": 0.07724708679998002,
       "repeats": 5
     }
   ],

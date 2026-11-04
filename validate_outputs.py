@@ -17,7 +17,7 @@ def validate(root):
             count+=1
         elif path.suffix=='.json':json.loads(path.read_text())
         elif path.suffix=='.npy':np.load(path,allow_pickle=False)
-    for lab in range(1,8):
+    for lab in (*range(1,9),10):
         meta=json.loads((root/f'lab_{lab:02d}'/'outputs'/'opengl.json').read_text())
         if not meta.get('version') or meta.get('depth_bits',0)<24:raise ValueError(f'Invalid OpenGL evidence for lab {lab}')
     for readme in root.rglob('*.md'):
@@ -25,7 +25,7 @@ def validate(root):
             dest=dest.split('#')[0]
             if dest and '://' not in dest and not (readme.parent/dest).exists():
                 raise ValueError(f'Broken local link: {readme}: {dest}')
-    print(f'Validated {count} images/animations, {frames} decoded frames, numerical outputs, seven OpenGL contexts, and local Markdown file links.')
+    print(f'Validated {count} images/animations, {frames} decoded frames, numerical outputs, nine OpenGL contexts, and local Markdown file links.')
 
 
 if __name__=='__main__':validate(Path(__file__).resolve().parent)

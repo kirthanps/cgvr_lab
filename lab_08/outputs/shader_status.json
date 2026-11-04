@@ -1,0 +1,9 @@
+{
+  "linked": true,
+  "program_log": "",
+  "vertices": 3,
+  "stride_bytes": 24,
+  "position_offset_bytes": 0,
+  "color_offset_bytes": 12,
+  "glsl_target": "1.20"
+}

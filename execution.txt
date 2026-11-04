@@ -5,5 +5,7 @@ Lab 4 OpenGL outputs: /workspace/scratch/84bb41e2d488/cg-vr-labs/lab_04/outputs
 Lab 5 OpenGL outputs: /workspace/scratch/84bb41e2d488/cg-vr-labs/lab_05/outputs
 Lab 6 OpenGL outputs: /workspace/scratch/84bb41e2d488/cg-vr-labs/lab_06/outputs
 Lab 7 OpenGL outputs: /workspace/scratch/84bb41e2d488/cg-vr-labs/lab_07/outputs
+Lab 8 OpenGL outputs: /workspace/scratch/84bb41e2d488/cg-vr-labs/lab_08/outputs
+Lab 10 OpenGL outputs: /workspace/scratch/84bb41e2d488/cg-vr-labs/lab_10/outputs
 
-Completed all seven OpenGL demonstrations successfully.
+Completed Labs 1–8 and 10 successfully. Lab 9 is pending Unity.
