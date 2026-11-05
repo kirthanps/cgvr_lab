@@ -1,0 +1,4 @@
+PASS: player startup, pivot rotation, non-uniform scale, reflection, shear, runtime mesh update, reset.
+Unity 6000.6.8f1
+AMD Radeon(TM) Graphics
+PASS: polygon and 3D cube time-based animation
